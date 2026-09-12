@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/pinky-and-the-brain/fast-context.schema.json",
+  "title": "Pinky snapshot document",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["context", "context_hash", "context_files", "published_at"],
+  "properties": {
+    "context": { "type": "string", "minLength": 1 },
+    "context_hash": { "type": "string", "minLength": 1 },
+    "context_length": { "type": "integer", "minimum": 0 },
+    "context_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1
+    },
+    "published_at": { "type": "string", "format": "date-time" }
+  }
+}

@@ -1,0 +1,58 @@
+# GitHub Actions sketch. Copy into a private learning repo as
+# .github/workflows/brain.yml and replace the placeholder steps
+# with your drain / review / publish scripts.
+
+name: Brain
+
+on:
+  schedule:
+    - cron: "30 13 * * *" # 8:30 AM America/Chicago; change for your timezone
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install agent CLI
+        run: |
+          echo "Install cursor-agent, claude, or your CLI here"
+          echo "Install MUST happen before any step that calls it"
+
+      - name: Drain inbox and write review tasks
+        env:
+          BUS_URL: ${{ secrets.BUS_URL }}
+          BUS_TOKEN: ${{ secrets.BUS_TOKEN }}
+        run: echo "LPOP each inbox record; write inbox/ and a review task file"
+
+      - name: Run Brain agent
+        env:
+          AGENT_API_KEY: ${{ secrets.AGENT_API_KEY }}
+        run: |
+          echo "agent -p --trust --workspace . \"$(cat inbox/tasks/current.md)\""
+          echo "Treat stdout NO_CHAT_REPLY as send-nothing"
+
+      - name: Unstick git paths and commit
+        run: |
+          git config user.name "Brain Bot"
+          git config user.email "brain@example.com"
+          echo "Clear assume-unchanged / skip-worktree the CLI may have set"
+          git add knowledge inbox state
+          git diff --cached --quiet || git commit -m "Brain: file queued knowledge"
+          git pull --rebase origin HEAD || true
+          git push
+
+      - name: Publish Pinky snapshot
+        env:
+          BUS_URL: ${{ secrets.BUS_URL }}
+          BUS_TOKEN: ${{ secrets.BUS_TOKEN }}
+        run: echo "Concatenate fast_context pages; SET snapshot key"
+
+      - name: Optional follow-up
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+        run: echo "Send CLI stdout unless it is NO_CHAT_REPLY"

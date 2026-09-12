@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/pinky-and-the-brain/inbox-message.schema.json",
+  "title": "Pinky and The Brain inbox record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "message_id",
+    "channel",
+    "chat_id",
+    "user_id",
+    "conversation_key",
+    "text",
+    "route",
+    "fast_response",
+    "received_at"
+  ],
+  "properties": {
+    "message_id": { "type": "string", "minLength": 1 },
+    "channel": { "type": "string", "minLength": 1 },
+    "chat_id": { "type": "string" },
+    "user_id": { "type": "string" },
+    "username": { "type": "string" },
+    "sender_display_name": { "type": "string" },
+    "conversation_key": { "type": "string", "minLength": 1 },
+    "text": { "type": "string" },
+    "route": {
+      "type": "string",
+      "enum": [
+        "lightweight_answer",
+        "knowledge_update",
+        "task",
+        "needs_clarification",
+        "ignore"
+      ]
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "fast_response": { "type": "string" },
+    "async_task_title": { "type": "string" },
+    "async_task_body": { "type": "string" },
+    "photo_label": { "type": "string" },
+    "photo_description": { "type": "string" },
+    "media": {
+      "type": ["object", "null"],
+      "properties": {
+        "file_id": { "type": "string" },
+        "mime_type": { "type": "string" },
+        "kind": { "type": "string" }
+      }
+    },
+    "received_at": { "type": "string", "format": "date-time" }
+  }
+}

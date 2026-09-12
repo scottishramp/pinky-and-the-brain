@@ -1,0 +1,9 @@
+{
+  "generated_by": "your publish script",
+  "rule": "AGENTS.md, knowledge/index.md, plus every knowledge page with frontmatter fast_context: true",
+  "files": [
+    "AGENTS.md",
+    "knowledge/index.md",
+    "knowledge/you.md"
+  ]
+}

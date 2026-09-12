@@ -1,0 +1,10 @@
+{
+  "name": "pinky-and-the-brain",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Two-agent architecture: Pinky answers now from a snapshot; Brain learns later and writes the knowledge base.",
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "snapshot": "node starter/brain/publish-snapshot.example.js starter"
+  }
+}
