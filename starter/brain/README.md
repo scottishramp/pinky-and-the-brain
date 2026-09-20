@@ -3,14 +3,19 @@
 Brain is a scheduled job, not a webhook.
 
 1. Checkout the learning repo
-2. Drain the bus inbox
+2. Claim inbox messages with a lease or visibility timeout
 3. Write a short review task per message
 4. Run the agentic CLI in the workspace
 5. Commit only what changed
-6. Publish a new snapshot
-7. Send a follow-up, or nothing if the CLI printed `NO_CHAT_REPLY`
+6. Acknowledge successfully processed messages
+7. Publish a new snapshot
+8. Send a follow-up, or nothing if the CLI printed `NO_CHAT_REPLY`
 
-`workflow.example.yml` is a GitHub Actions sketch. `review-prompt.example.md` is the prompt body. `publish-snapshot.example.js` concatenates `fast_context: true` pages and would SET them on your bus.
+`workflow.example.yml` is pseudocode for GitHub Actions, not a runnable
+workflow. Replace every placeholder before copying it into `.github/workflows/`.
+`review-prompt.example.md` is the prompt body.
+`publish-snapshot.example.js` concatenates `fast_context: true` pages and would
+SET them on your bus.
 
 Secrets the runtime needs:
 

@@ -35,7 +35,8 @@ Create the bot on the platform. Put the token in the gateway environment *and* t
 
 ## Gateway
 
-**Owns:** HTTP ingress, allowlist, webhook ACK, calling Pinky, sending the fast reply, enqueueing the bus record.
+**Owns:** HTTP ingress, allowlist, webhook ACK, calling Pinky, durably
+enqueueing the bus record, and sending the fast reply.
 
 **Must not own:** durable knowledge writes, agentic tool use, or “I have dispatched Brain.”
 
@@ -66,13 +67,15 @@ A multimodal model is a bonus, not a requirement. If Pinky can see photos, Brain
 
 | Key | Direction | Contents |
 |---|---|---|
-| Inbox queue | Gateway → Brain | One record per allowed message |
+| Inbox queue | Gateway → Brain | Durable, retryable record per allowed message |
 | Chat history | Gateway ↔ Pinky | Last N turns, TTL |
 | Snapshot | Brain → Pinky | Curated Markdown + hash + file list |
 
 **Must not own:** the canonical knowledge. If Redis disappears, Brain still has git. Pinky just gets dumber until the next publish.
 
-Redis is a convenient single process for all three. You can split them. Do not skip them.
+Redis is a convenient store for all three. You can split them. The inbox must
+support claim/ack or equivalent retry semantics; a destructive pop can lose a
+message when Brain fails.
 
 ## Brain agent
 

@@ -2,7 +2,8 @@
 
 Two agents are only interesting if they have different permissions.
 
-Pinky is allowed to **talk** and **queue**.
+Pinky is allowed to **talk** through the gateway.
+The gateway may write only to the bus.
 Brain is allowed to **write the repo**.
 
 If Pinky can `git commit`, you have one agent with a fast mouth. The rest of this framework is costume.
@@ -23,11 +24,12 @@ If Pinky can `git commit`, you have one agent with a fast mouth. The rest of thi
 - Describe a photo
 - Reply with a fixed DEFER sentence when the snapshot does not contain the answer
 - Reply with a fixed “queued for Brain” sentence when the human offered a fact
-- Enqueue the inbound record, every time
+- Return a structured decision for the gateway to enqueue
 
 ## What Pinky may not do
 
 - Create, edit, or delete knowledge pages
+- Hold repository-write credentials
 - Claim that it “saved,” “logged,” “noted,” or “updated” durable memory
 - Claim that Brain is running *now*
 - Dispatch the Brain runtime (no live workflow trigger from the gateway)

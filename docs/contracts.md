@@ -10,6 +10,7 @@ The gateway writes one JSON object per allowed message onto the inbox queue. Bra
 
 ```json
 {
+  "schema_version": 1,
   "message_id": "platform-native-id",
   "channel": "telegram",
   "chat_id": "123",
@@ -32,6 +33,7 @@ The gateway writes one JSON object per allowed message onto the inbox queue. Bra
 
 | Field | Rule |
 |---|---|
+| `schema_version` | Contract version. Reject unsupported versions explicitly. |
 | `message_id` | Idempotency key. Brain must skip duplicates. |
 | `channel` | Adapter name. `telegram`, `slack`, … |
 | `text` | Caption or body. Empty only when media exists. |
@@ -49,6 +51,19 @@ The gateway writes one JSON object per allowed message onto the inbox queue. Bra
 - `ignore`
 
 Brain’s durable classes can be coarser: **fact**, **task**, **no-op**.
+
+## Delivery semantics
+
+The inbox must be durable and retryable:
+
+- enqueue before Pinky claims that an item was queued;
+- claim a message with a visibility timeout or lease;
+- acknowledge it only after Brain's durable changes and reply decision succeed;
+- retry failed claims and move repeatedly failing records to a dead-letter queue;
+- use `message_id` as an idempotency key for knowledge writes and follow-up replies.
+
+A destructive `LPOP` before processing is not sufficient: a runner crash would
+lose the message.
 
 ## DEFER
 
@@ -79,6 +94,7 @@ Brain publishes one JSON object Pinky reads on every turn:
 
 ```json
 {
+  "schema_version": 1,
   "context": "# AGENTS.md\n…\n# knowledge/you.md\n…",
   "context_hash": "sha256-of-context",
   "context_length": 18420,
@@ -100,10 +116,10 @@ Last N turns (10 is enough) keyed by `conversation_key`, with a TTL. History is 
 If Brain reviews a message and the fast reply already covered the turn, Brain’s stdout is exactly:
 
 ```
-NO_TELEGRAM_REPLY
+NO_CHAT_REPLY
 ```
 
-Rename it if your platform is not Telegram (`NO_CHAT_REPLY` is fine). The runtime must treat that token as “send nothing.”
+The runtime must treat that token as “send nothing.”
 
 ## Photo split
 

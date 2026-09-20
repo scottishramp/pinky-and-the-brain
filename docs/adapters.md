@@ -40,7 +40,7 @@ Pick a model that is cheap, fast, and obedient about JSON or a fixed DEFER sente
 |---|---|
 | Gemini Flash-class | Good reference: cheap, vision, JSON MIME. Thinking tokens can steal your output cap — set thinking low for describe. |
 | OpenAI / Anthropic small | Fine. Keep the write-barrier prompt identical. |
-| Local small model | Only if it will actually DEFER instead of inventing a family.
+| Local small model | Only if it reliably defers instead of inventing missing facts. |
 
 Temperature stays low. Give it a clock. Cap output. Retry once on 429/503.
 
@@ -53,7 +53,8 @@ Temperature stays low. Give it a clock. Cap output. Retry once on 429/503.
 | Postgres | Use `LISTEN`/`NOTIFY` or polling. Heavier, easy to inspect. |
 | Repo files | Possible for a solo laptop Brain. Do not make the gateway commit. |
 
-The snapshot key should be overwrite-in-place. The inbox should be a list you can `LPOP` or equivalent. History should expire.
+The snapshot key should be replaced atomically. The inbox needs claim/ack
+semantics, retries, and a dead-letter path. History should expire.
 
 ## Brain agent
 

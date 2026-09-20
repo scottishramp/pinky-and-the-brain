@@ -5,6 +5,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
+    "schema_version",
     "message_id",
     "channel",
     "chat_id",
@@ -16,6 +17,7 @@
     "received_at"
   ],
   "properties": {
+    "schema_version": { "const": 1 },
     "message_id": { "type": "string", "minLength": 1 },
     "channel": { "type": "string", "minLength": 1 },
     "chat_id": { "type": "string" },

@@ -7,8 +7,8 @@ On every allowed message it must:
 1. Fail closed on the allowlist
 2. ACK the platform quickly (immediately for photos)
 3. Call Pinky with the published snapshot + short history
-4. Send the fast reply
-5. Enqueue the inbox record, always
+4. Durably enqueue the inbox record
+5. Send the fast reply
 
 It must never `git commit`, dispatch Brain, or say that knowledge was saved.
 

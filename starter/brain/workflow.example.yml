@@ -1,6 +1,6 @@
-# GitHub Actions sketch. Copy into a private learning repo as
-# .github/workflows/brain.yml and replace the placeholder steps
-# with your drain / review / publish scripts.
+# Pseudocode for a GitHub Actions workflow. This file is intentionally outside
+# .github/workflows because its placeholder commands are not runnable.
+# Replace every placeholder before copying it into a private learning repo.
 
 name: Brain
 
@@ -23,11 +23,11 @@ jobs:
           echo "Install cursor-agent, claude, or your CLI here"
           echo "Install MUST happen before any step that calls it"
 
-      - name: Drain inbox and write review tasks
+      - name: Claim inbox messages and write review tasks
         env:
           BUS_URL: ${{ secrets.BUS_URL }}
           BUS_TOKEN: ${{ secrets.BUS_TOKEN }}
-        run: echo "LPOP each inbox record; write inbox/ and a review task file"
+        run: echo "Claim with a lease/visibility timeout; do not destructively pop"
 
       - name: Run Brain agent
         env:
@@ -41,10 +41,17 @@ jobs:
           git config user.name "Brain Bot"
           git config user.email "brain@example.com"
           echo "Clear assume-unchanged / skip-worktree the CLI may have set"
-          git add knowledge inbox state
+          git add -A
           git diff --cached --quiet || git commit -m "Brain: file queued knowledge"
-          git pull --rebase origin HEAD || true
+          git pull --rebase origin "$GITHUB_REF_NAME"
           git push
+
+      - name: Acknowledge processed inbox messages
+        if: success()
+        env:
+          BUS_URL: ${{ secrets.BUS_URL }}
+          BUS_TOKEN: ${{ secrets.BUS_TOKEN }}
+        run: echo "Ack claimed messages only after durable work succeeds"
 
       - name: Publish Pinky snapshot
         env:

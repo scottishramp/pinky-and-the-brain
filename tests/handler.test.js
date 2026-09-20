@@ -56,7 +56,26 @@ test("answered turns are still enqueued", async () => {
   assert.equal(result.status, "ok");
   assert.equal(p.sent[0].text, "Pickup is at 3:30.");
   assert.equal(p.queued.length, 1);
+  assert.equal(p.queued[0].schema_version, 1);
   assert.equal(p.queued[0].fast_response, "Pickup is at 3:30.");
+});
+
+test("enqueue succeeds before the gateway replies", async () => {
+  const calls = [];
+  const p = ports();
+  p.bus.enqueue = async () => calls.push("enqueue");
+  p.channel.send = async () => calls.push("send");
+  await handleMessage(event, p);
+  assert.deepEqual(calls, ["enqueue", "send"]);
+});
+
+test("enqueue failure cannot produce a false success reply", async () => {
+  const p = ports();
+  p.bus.enqueue = async () => {
+    throw new Error("queue unavailable");
+  };
+  await assert.rejects(() => handleMessage(event, p), /queue unavailable/);
+  assert.equal(p.sent.length, 0);
 });
 
 test("questions without context become DEFER", async () => {

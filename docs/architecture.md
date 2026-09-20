@@ -1,49 +1,10 @@
 # Architecture
 
-Pinky and The Brain is a **capability split**, not a branding exercise.
+Pinky and The Brain separates low-latency conversation from tool-enabled,
+durable work. The two agents communicate asynchronously through a bus and a
+published view of a private Git repository.
 
-Most chatbot stacks pick one model and give it both jobs: answer now, and remember forever. That forces a bad trade. Either the chat is slow because the model is running tools against a repo, or the memory is shallow because the chat model cannot safely write.
-
-This architecture gives the jobs to two agents that share a repo **asynchronously**.
-
-## The first piece list, corrected
-
-The original inventory was:
-
-1. Self-learning repo (functions + knowledge base)
-2. Chat platform
-3. Chatbot
-4. Router (hosted function + fast model?)
-5. Pinky LLM
-6. Brain agentic CLI
-7. Brain environment
-8. Brain environment *(listed twice)*
-
-That is the right shape. The names need a few splits.
-
-### Keep
-
-- **Learning repo.** This is the distinctive store. It is knowledge *and* functions. Brain writes pages; scripts and workflows are part of the same tree.
-- **Chat platform.** Telegram is one adapter. The platform is not the bot.
-- **Pinky LLM.** Fast, cheap, preferably multimodal. Pinky is a mind, not a host.
-- **Brain agentic CLI.** Cursor CLI, Claude Code, Codex, Aider — anything that can check out a repo and edit it headlessly.
-
-### Split
-
-- **“Router” → Gateway + Pinky.** The hosted function is the **gateway**: webhook, allowlist, ACK, enqueue, send. The model it calls is **Pinky**. Hosting them together is convenient, not required. “Router” is leftover language from designs that dispatched the slow agent in realtime. The working design does not. It answers or defers, and it always queues.
-- **“Chatbot” → Bot identity.** The human addresses one bot. Pinky and Brain both speak through it. A second “chatbot” piece doubles a surface that should stay singular.
-- **“Brain environment” × 2 → runtime + workspace.** The duplicate was useful. **Runtime** is the scheduler and compute (GitHub Actions, a cron VM). **Workspace** is the checkout, tools, and secrets the agent may touch. Same CLI, different rooms.
-
-### Add
-
-- **Bus.** Queue (Pinky → Brain), short history (Pinky session memory), published snapshot (Brain → Pinky). Without this, the two agents cannot share state without sharing a process.
-- **Write barrier.** A rule, not a service. Pinky never writes the repo. See [write-barrier.md](write-barrier.md).
-- **Context publication.** Brain chooses which pages Pinky may see and publishes them. Pinky does not `git pull`.
-- **Allowlist.** Fail closed. An empty list means nobody.
-- **Extra senses (optional).** Email, calendar, and docs can feed Brain without going through Pinky. Pinky is one mouth. Brain can have more ears.
-- **Cadence.** Brain is scheduled on purpose. Realtime Brain is a different product: more cost, more failure modes, more pressure to lie about what was saved.
-
-## Layers
+## Data flow
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -68,7 +29,27 @@ That is the right shape. The names need a few splits.
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Why git, not a vector store
+The gateway is an edge service, not the durable worker. It authenticates the
+sender, invokes Pinky, records the turn, and returns a fast response. It does
+not dispatch Brain synchronously.
+
+The Brain **runtime** is the scheduler and compute environment. The Brain
+**workspace** is the checkout, tools, network access, and secrets available to
+the agent. Keeping these concepts separate makes the security boundary clear.
+
+## System invariants
+
+- The knowledge repository is the canonical durable store.
+- Pinky has no credentials that can modify the repository.
+- Every accepted inbound message enters a durable, retryable inbox.
+- Brain processes messages idempotently and acknowledges them only after
+  durable work completes.
+- Pinky receives a curated snapshot, never a repository checkout.
+- Chat history is temporary conversational state, not durable knowledge.
+- Snapshot publication and gateway deployment are independent operations.
+- Unknown senders are rejected before model invocation.
+
+## Why Git is canonical
 
 A vector database is a good index. It is a poor **source of truth** for a life.
 
@@ -82,7 +63,7 @@ This architecture treats the repo as canonical:
 
 You can add embeddings on top. Do not let the index become the memory.
 
-## What Pinky is allowed to know
+## Pinky's context
 
 Pinky sees:
 
@@ -99,7 +80,7 @@ Pinky does not see:
 
 Brain decides the snapshot. That is how a reclusive agent teaches a fast one without giving it the keys.
 
-## What Brain does with a message
+## Brain's review loop
 
 Brain is not a second chatbot. It is a reviewer. For each queued message it chooses exactly one:
 
@@ -111,9 +92,14 @@ Brain is not a second chatbot. It is a reviewer. For each queued message it choo
 
 Then it either sends a follow-up from the same bot, or it emits a suppress token so the human is not double-texted.
 
-## Cadence is part of the architecture
+The runtime should use claim/ack semantics or an equivalent visibility timeout.
+A destructive queue pop before processing creates an at-most-once system and
+can lose messages when the agent or CI job fails.
 
-Brain runs later. In a working instance that is “morning, in this timezone,” plus an extra pass after other ingest jobs. That is not only a cost hack.
+## Scheduling
+
+Brain runs asynchronously: on a schedule, from an explicit trigger, or both.
+That is not only a cost optimization.
 
 - The human gets an honest fast answer now.
 - Durable writes happen when there is time to read the repo, not in a 10-second webhook.
@@ -122,7 +108,7 @@ Brain runs later. In a working instance that is “morning, in this timezone,”
 
 If you make Brain realtime, you still need the write barrier. You have just spent the isolation that made Pinky cheap and honest.
 
-## Extra senses
+## Additional inputs
 
 Chat is one intake. Brain can also learn from:
 
@@ -132,7 +118,7 @@ Chat is one intake. Brain can also learn from:
 
 Those paths should write **staging**, not pages, until a consolidation pass files them. Staging is not knowledge. See [knowledge-base.md](knowledge-base.md).
 
-## Health
+## Observability
 
 The gateway should expose a cheap GET that reports:
 
@@ -143,7 +129,10 @@ The gateway should expose a cheap GET that reports:
 
 Knowledge is not “live” until the canary matches. A deploy that ships old snapshot files, or a publish step that failed, will look like a working bot that has forgotten last week.
 
-## Security posture
+The Brain runtime should also report queue depth, oldest-message age, last
+successful commit, last snapshot publication, and dead-letter count.
+
+## Security boundary
 
 - The learning repo that holds a life should be **private**.
 - This framework repo is public and must stay free of personal facts.

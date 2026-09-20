@@ -56,12 +56,10 @@ async function handleMessage(event, ports) {
   }
   response = assertNoWriteClaim(response);
 
-  await channel.send(event.chatId, response);
-  await bus.appendHistory(event.conversationKey, [
-    { role: "user", text: event.text },
-    { role: "assistant", text: response },
-  ]);
+  // Enqueue before claiming success to the user. In production, enqueue()
+  // should publish to a durable queue with retries and claim/ack semantics.
   await bus.enqueue({
+    schema_version: 1,
     message_id: event.messageId,
     channel: event.channel,
     chat_id: String(event.chatId),
@@ -77,6 +75,11 @@ async function handleMessage(event, ports) {
     media: event.media || null,
     received_at: new Date().toISOString(),
   });
+  await channel.send(event.chatId, response);
+  await bus.appendHistory(event.conversationKey, [
+    { role: "user", text: event.text },
+    { role: "assistant", text: response },
+  ]);
 
   return { status: "ok", route, response };
 }
