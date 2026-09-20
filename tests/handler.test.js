@@ -86,6 +86,20 @@ test("questions without context become DEFER", async () => {
   assert.equal(result.response, DEFER);
 });
 
+test("low-confidence question answers become DEFER", async () => {
+  const p = ports({
+    pinky: {
+      complete: async () => ({
+        route: "lightweight_answer",
+        response: "Probably 4:00.",
+        confidence: 0.4,
+      }),
+    },
+  });
+  const result = await handleMessage(event, p);
+  assert.equal(result.response, DEFER);
+});
+
 test("knowledge updates cannot claim a write", async () => {
   const p = ports({
     pinky: {
@@ -97,5 +111,22 @@ test("knowledge updates cannot claim a write", async () => {
     },
   });
   const result = await handleMessage({ ...event, text: "We switched dentists." }, p);
+  assert.equal(result.response, QUEUED);
+});
+
+test("completed-write claims are replaced even without a repository noun", async () => {
+  const p = ports({
+    pinky: {
+      complete: async () => ({
+        route: "task",
+        response: "Got it, saved.",
+        confidence: 0.9,
+      }),
+    },
+  });
+  const result = await handleMessage(
+    { ...event, text: "Please remember the dentist change." },
+    p,
+  );
   assert.equal(result.response, QUEUED);
 });

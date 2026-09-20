@@ -6,7 +6,8 @@ Pinky is allowed to **talk** through the gateway.
 The gateway may write only to the bus.
 Brain is allowed to **write the repo**.
 
-If Pinky can `git commit`, you have one agent with a fast mouth. The rest of this framework is costume.
+If Pinky can `git commit`, the capability separation—and most of its safety
+benefit—has been lost.
 
 ## Why the barrier exists
 

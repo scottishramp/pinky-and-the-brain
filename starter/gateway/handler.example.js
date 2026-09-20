@@ -16,8 +16,20 @@ function isAllowed(userId, allowlist) {
   return allowlist.length > 0 && allowlist.includes(String(userId));
 }
 
+function looksLikeQuestion(text) {
+  return (
+    /\?/.test(text) ||
+    /^(who|what|when|where|why|how|is|are|do|does|did|can|could|would|should|will|was|were|have|has)\b/i.test(
+      text.trim(),
+    )
+  );
+}
+
 function assertNoWriteClaim(text) {
-  if (/\b(saved|logged|noted|updated)\b.+\b(knowledge|repo|memory)\b/i.test(text)) {
+  const claimsCompletedWrite =
+    /\b(saved|logged|noted|recorded|remembered)\b/i.test(text) ||
+    /\bupdated\b.{0,40}\b(knowledge|repo|repository|memory)\b/i.test(text);
+  if (claimsCompletedWrite) {
     return QUEUED;
   }
   return text;
@@ -47,8 +59,12 @@ async function handleMessage(event, ports) {
   });
 
   const route = ALLOWED_ROUTES.has(decision.route) ? decision.route : "task";
+  const confidence = Math.max(0, Math.min(1, Number(decision.confidence) || 0));
   let response = String(decision.response || "").trim() || DEFER;
-  if (route === "task" && /[?]/.test(event.text || "")) {
+  if (
+    looksLikeQuestion(event.text || "") &&
+    (route === "task" || (route === "lightweight_answer" && confidence < 0.7))
+  ) {
     response = DEFER;
   }
   if (route === "knowledge_update") {
@@ -67,7 +83,7 @@ async function handleMessage(event, ports) {
     conversation_key: event.conversationKey,
     text: event.text || "",
     route,
-    confidence: decision.confidence || 0,
+    confidence,
     fast_response: response,
     async_task_body: event.text || "",
     photo_label: decision.photo_label || "",
@@ -84,4 +100,10 @@ async function handleMessage(event, ports) {
   return { status: "ok", route, response };
 }
 
-module.exports = { handleMessage, DEFER, QUEUED };
+module.exports = {
+  handleMessage,
+  assertNoWriteClaim,
+  looksLikeQuestion,
+  DEFER,
+  QUEUED,
+};

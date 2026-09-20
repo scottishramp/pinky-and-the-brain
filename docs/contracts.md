@@ -65,6 +65,20 @@ The inbox must be durable and retryable:
 A destructive `LPOP` before processing is not sufficient: a runner crash would
 lose the message.
 
+### Logical bus keys
+
+Names are implementation-specific, but every adapter should expose these
+logical records:
+
+| Record | Suggested pattern | Retention |
+|---|---|---|
+| Inbox | `assistant:inbox` | Until acknowledged or dead-lettered |
+| Claim | `assistant:claim:{message_id}` | Visibility timeout |
+| History | `assistant:history:{conversation_key}` | Short TTL |
+| Snapshot | `assistant:snapshot` | Replace atomically |
+| Processed ledger | `assistant:processed:{message_id}` | Long enough to prevent duplicate writes and replies |
+| Dead letter | `assistant:dead-letter` | Until reviewed |
+
 ## DEFER
 
 When the message is a question and the snapshot does not contain the answer, Pinky replies with **exactly**:

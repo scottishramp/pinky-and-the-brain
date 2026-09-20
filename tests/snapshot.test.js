@@ -56,3 +56,14 @@ test("snapshot includes selected knowledge and excludes connections", (t) => {
   assert.doesNotMatch(snapshot.context, /# Connection/);
   assert.doesNotMatch(snapshot.context, /# Sensitive/);
 });
+
+test("starter manifest matches the generated snapshot", () => {
+  const starter = path.resolve(__dirname, "..", "starter");
+  const manifest = JSON.parse(
+    fs.readFileSync(
+      path.join(starter, "ops", "fast-context-manifest.example.json"),
+      "utf8",
+    ),
+  );
+  assert.deepEqual(buildSnapshot(starter).context_files, manifest.files);
+});

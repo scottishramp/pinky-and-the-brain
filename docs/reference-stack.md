@@ -24,7 +24,7 @@ One combination that has been run as a daily personal assistant. You do not need
 - Gemini Flash is fast enough for chat and good enough at describing a photo that Brain can file from prose.
 - Cursor CLI can edit the same repo the human uses interactively.
 
-## What this pairing taught us (without the war stories)
+## Operational constraints
 
 - Do not hold the webhook for vision. ACK, then describe.
 - Do not dispatch Brain from the gateway.
