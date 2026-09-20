@@ -12,7 +12,9 @@ On every allowed message it must:
 
 It must never `git commit`, dispatch Brain, or say that knowledge was saved.
 
-`handler.example.js` is a sketch of that control flow, not a production Telegram client. Swap the `channel`, `pinky`, and `bus` ports for your stack.
+`handler.example.js` is a sketch of that control flow, not a production
+Telegram client. Swap the `channel`, `pinky`, and `bus` ports for your stack.
+Use `pinky-system-prompt.example.md` as the model contract.
 
 Environment names you will likely need:
 

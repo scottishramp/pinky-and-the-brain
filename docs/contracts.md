@@ -83,10 +83,15 @@ The original message is still queued. Pinky does not assign the work. Brain deci
 
 ## Queued, not saved
 
-When the human offers a fact (“we switched dentists,” “I ate lunch”), Pinky’s reply must acknowledge a **queue**, not a write.
+When the human offers a fact (“we switched dentists,” “I ate lunch”), Pinky
+uses this canonical response:
 
-Good: “Queued for the scheduled agent.”
-Bad: “Got it, I saved that to your knowledge base.”
+```
+Queued for the scheduled agent. It is not in the knowledge base yet.
+```
+
+It must not say “saved,” “logged,” or otherwise claim that durable memory has
+already changed.
 
 ## Snapshot document
 

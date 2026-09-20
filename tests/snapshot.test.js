@@ -27,6 +27,10 @@ function fixture() {
     path.join(root, "knowledge", "connections", "secret.md"),
     "---\nfast_context: true\n---\n\n# Connection\n",
   );
+  fs.writeFileSync(
+    path.join(root, "knowledge", "sensitive.md"),
+    "---\nfast_context: true\nsensitivity: high\n---\n\n# Sensitive\n",
+  );
   return root;
 }
 
@@ -50,4 +54,5 @@ test("snapshot includes selected knowledge and excludes connections", (t) => {
   ]);
   assert.match(snapshot.context, /# Included/);
   assert.doesNotMatch(snapshot.context, /# Connection/);
+  assert.doesNotMatch(snapshot.context, /# Sensitive/);
 });

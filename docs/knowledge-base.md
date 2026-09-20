@@ -44,7 +44,7 @@ fast_context: true
 |---|---|
 | `fast_context` | Brain’s publisher includes the page in Pinky’s snapshot when true. |
 | `last_reviewed` + `review_every_days` | Brain can ask a few open questions when a page is stale. |
-| `sensitivity` | Helps you keep high-sensitivity pages out of the snapshot. |
+| `sensitivity` | `high` pages are never published, even when `fast_context: true`. |
 | `status` | `active` or `retired`. Retired pages move to `archive/` with one line left in the index. |
 
 ## One fact, one page
@@ -75,7 +75,6 @@ Publish:
 
 - Tier 0 (`AGENTS.md`)
 - The directory
-- A version stamp
 - Every page with `fast_context: true`
 
 Do not publish:
@@ -84,7 +83,7 @@ Do not publish:
 - `state/` ledgers
 - connection pages that describe how to use tokens
 - retired archive except a one-line pointer if you truly need it
-- anything `sensitivity` says Pinky should not say out loud
+- every page with `sensitivity: high`
 
 Rebuild a manifest file in `ops/` so a test can fail when the snapshot set is stale.
 

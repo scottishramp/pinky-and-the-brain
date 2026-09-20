@@ -67,7 +67,7 @@ You can add embeddings on top. Do not let the index become the memory.
 
 Pinky sees:
 
-1. A published snapshot of pages marked for fast context (plus a tiny always-on set: the Tier 0 overview, the directory, a version stamp).
+1. A published snapshot of pages marked for fast context, plus the Tier 0 overview and directory.
 2. A short rolling chat history.
 3. The current message, and if you support photos, the image bytes for that turn.
 

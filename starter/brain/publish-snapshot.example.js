@@ -11,11 +11,15 @@ function frontmatter(raw) {
   return match ? match[1] : "";
 }
 
-function frontmatterFlag(raw, name) {
+function frontmatterValue(raw, name) {
   const match = frontmatter(raw).match(
-    new RegExp(`^${name}:\\s*(true|false)\\s*$`, "m"),
+    new RegExp(`^${name}:\\s*([^#\\n]+?)\\s*$`, "m"),
   );
-  return match ? match[1] === "true" : false;
+  return match ? match[1].trim() : "";
+}
+
+function frontmatterFlag(raw, name) {
+  return frontmatterValue(raw, name) === "true";
 }
 
 function collectFiles(root) {
@@ -30,7 +34,10 @@ function collectFiles(root) {
       }
       if (!entry.name.endsWith(".md")) continue;
       const raw = fs.readFileSync(path.join(root, rel), "utf8");
-      if (frontmatterFlag(raw, "fast_context")) files.push(rel);
+      const sensitivity = frontmatterValue(raw, "sensitivity").toLowerCase();
+      if (frontmatterFlag(raw, "fast_context") && sensitivity !== "high") {
+        files.push(rel);
+      }
     }
   }
   const knowledgeRoot = path.join(root, "knowledge");
@@ -69,4 +76,9 @@ function main() {
 
 if (require.main === module) main();
 
-module.exports = { buildSnapshot, collectFiles, frontmatterFlag };
+module.exports = {
+  buildSnapshot,
+  collectFiles,
+  frontmatterFlag,
+  frontmatterValue,
+};
